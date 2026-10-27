@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Zen Tab Sleep</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <h1 data-i18n="extensionName"></h1>
+    <label class="toggle">
+      <input type="checkbox" id="enabled">
+      <span data-i18n="enabled"></span>
+    </label>
+  </header>
+
+  <section id="current">
+    <h2 data-i18n="sectionCurrentTab"></h2>
+    <p id="status" class="status">…</p>
+    <label class="row">
+      <input type="checkbox" id="keepTab">
+      <span><span data-i18n="keepTab"></span> <small data-i18n="keepTabNote"></small></span>
+    </label>
+    <label class="row" id="keepSiteRow">
+      <input type="checkbox" id="keepSite">
+      <span id="keepSiteLabel" data-i18n="keepSiteGeneric"></span>
+    </label>
+  </section>
+
+  <section>
+    <h2 data-i18n="sectionSettings"></h2>
+    <label class="row">
+      <span data-i18n="timeoutBefore"></span>
+      <input type="number" id="timeout" min="1" max="10080" step="1" required>
+      <span data-i18n="timeoutAfter"></span>
+    </label>
+    <p id="timeoutError" class="error" data-i18n="timeoutError" hidden></p>
+    <label class="row">
+      <input type="checkbox" id="protectEssentials">
+      <span data-i18n="protectEssentials"></span>
+    </label>
+    <label class="row">
+      <input type="checkbox" id="protectWorkspacePins">
+      <span data-i18n="protectWorkspacePins"></span>
+    </label>
+    <label class="row">
+      <input type="checkbox" id="protectAudible">
+      <span data-i18n="protectAudible"></span>
+    </label>
+    <p class="hint" data-i18n="sharingHint"></p>
+  </section>
+
+  <section>
+    <h2 data-i18n="sectionExclusions"></h2>
+    <textarea id="exclusions" rows="4" spellcheck="false"></textarea>
+    <p class="hint">
+      <span data-i18n="exclusionsHintIntro"></span>
+      <code>github.com</code>
+      <span data-i18n="exclusionsHintDomain"></span>
+      <code>https://example.com/app</code>
+      <span data-i18n="exclusionsHintPrefix"></span>
+      <code>*</code><span data-i18n="exclusionsHintEnd"></span>
+    </p>
+    <p id="exclusionsError" class="error" hidden></p>
+  </section>
+
+  <footer>
+    <button type="button" id="checkNow" data-i18n="checkNow"></button>
+    <span id="feedback" class="feedback" role="status"></span>
+    <p id="stats" class="stats"></p>
+  </footer>
+
+  <script src="core.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

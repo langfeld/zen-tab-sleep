@@ -1,0 +1,155 @@
+{
+  "extensionName": {
+    "message": "Zen Tab Sleep"
+  },
+  "extensionDescription": {
+    "message": "Legt inaktive Tabs in allen Zen-Workspaces schlafen. Essentials, Ausnahmen und Tabs mit Ton oder Kamera bleiben wach."
+  },
+  "enabled": {
+    "message": "Aktiv"
+  },
+  "sectionCurrentTab": {
+    "message": "Dieser Tab"
+  },
+  "keepTab": {
+    "message": "Diesen Tab wach halten"
+  },
+  "keepTabNote": {
+    "message": "(bis zum Neustart)"
+  },
+  "keepSiteGeneric": {
+    "message": "Diese Website immer wach halten"
+  },
+  "keepSite": {
+    "message": "„$HOST$“ immer wach halten",
+    "placeholders": {
+      "host": { "content": "$1", "example": "github.com" }
+    }
+  },
+  "sectionSettings": {
+    "message": "Einstellungen"
+  },
+  "timeoutBefore": {
+    "message": "Schlafen legen nach"
+  },
+  "timeoutAfter": {
+    "message": "Min. ohne Nutzung"
+  },
+  "timeoutError": {
+    "message": "Bitte eine ganze Zahl von 1 bis 10080 eingeben."
+  },
+  "protectEssentials": {
+    "message": "Essentials wach halten"
+  },
+  "protectWorkspacePins": {
+    "message": "Angepinnte Workspace-Tabs und Ordner wach halten"
+  },
+  "protectAudible": {
+    "message": "Tabs mit Ton wach halten"
+  },
+  "sharingHint": {
+    "message": "Tabs mit Kamera-, Mikrofon- oder Bildschirmfreigabe bleiben immer wach."
+  },
+  "sectionExclusions": {
+    "message": "Ausnahmen"
+  },
+  "exclusionsPlaceholder": {
+    "message": "github.com\nhttps://example.com/app"
+  },
+  "exclusionsHintIntro": {
+    "message": "Eine pro Zeile:"
+  },
+  "exclusionsHintDomain": {
+    "message": "(mit Subdomains),"
+  },
+  "exclusionsHintPrefix": {
+    "message": "(alles, was so beginnt), oder ein Muster mit"
+  },
+  "exclusionsHintEnd": {
+    "message": "."
+  },
+  "exclusionsInvalid": {
+    "message": "Nicht verstanden und ignoriert: $LINES$",
+    "placeholders": {
+      "lines": { "content": "$1", "example": "foo bar" }
+    }
+  },
+  "checkNow": {
+    "message": "Jetzt prüfen"
+  },
+  "saved": {
+    "message": "Gespeichert"
+  },
+  "error": {
+    "message": "Fehler: $MESSAGE$",
+    "placeholders": {
+      "message": { "content": "$1", "example": "Etwas ist schiefgegangen" }
+    }
+  },
+  "sleptOne": {
+    "message": "1 Tab schlafen gelegt"
+  },
+  "sleptMany": {
+    "message": "$COUNT$ Tabs schlafen gelegt",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "statsTotal": {
+    "message": "$COUNT$ Tabs seit dem Browserstart schlafen gelegt",
+    "placeholders": {
+      "count": { "content": "$1", "example": "12" }
+    }
+  },
+  "statsCheckedNow": {
+    "message": "geprüft gerade eben"
+  },
+  "statsCheckedAgo": {
+    "message": "geprüft vor $MINUTES$ Min.",
+    "placeholders": {
+      "minutes": { "content": "$1", "example": "2" }
+    }
+  },
+  "statsKnown": {
+    "message": "$COUNT$ Tabs bekannt",
+    "placeholders": {
+      "count": { "content": "$1", "example": "40" }
+    }
+  },
+  "statusDisabled": {
+    "message": "Automatisches Schlafen ist ausgeschaltet."
+  },
+  "statusAsleep": {
+    "message": "Schläft gerade."
+  },
+  "statusUnsupported": {
+    "message": "Diese Seite wird nie schlafen gelegt."
+  },
+  "statusSharing": {
+    "message": "Teilt Kamera, Mikrofon oder Bildschirm und bleibt wach."
+  },
+  "statusAudible": {
+    "message": "Spielt Ton ab und bleibt wach."
+  },
+  "statusManual": {
+    "message": "Von dir wach gehalten."
+  },
+  "statusExcluded": {
+    "message": "Steht auf der Ausnahmeliste und bleibt wach."
+  },
+  "statusEssential": {
+    "message": "Angepinnt und als Essential geschützt."
+  },
+  "statusWorkspacePin": {
+    "message": "Angepinnt im Workspace oder im Ordner, bleibt wach."
+  },
+  "statusSleepsAfter": {
+    "message": "Schläft ein, wenn er $MINUTES$ Min. nicht genutzt wurde.",
+    "placeholders": {
+      "minutes": { "content": "$1", "example": "30" }
+    }
+  },
+  "statusUnavailable": {
+    "message": "Für diesen Tab nicht verfügbar."
+  }
+}
