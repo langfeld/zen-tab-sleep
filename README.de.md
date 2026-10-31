@@ -1,6 +1,7 @@
 # Zen Tab Sleep
 
-*[English version](README.md)*
+*[Bei Firefox Add-ons installieren](https://addons.mozilla.org/firefox/addon/zen-tab-sleep/) ·
+[English version](README.md)*
 
 Legt inaktive Tabs in **allen** Workspaces des
 [Zen-Browsers](https://zen-browser.app) schlafen. Essentials, Ausnahmen und
@@ -46,7 +47,9 @@ seine Domain auf die Liste oder wieder herunter.
 
 ## Installation
 
-- **Firefox Add-ons:** folgt in Kürze.
+- **Firefox Add-ons:**
+  [Zen Tab Sleep auf addons.mozilla.org](https://addons.mozilla.org/firefox/addon/zen-tab-sleep/)
+  installieren.
 - **Aus dem Quellcode:** `about:debugging` öffnen, *Dieser Firefox* →
   *Temporäres Add-on laden…* und `extension/manifest.json` wählen. Es bleibt
   bis zum nächsten Neustart installiert.
