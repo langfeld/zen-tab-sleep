@@ -36,8 +36,8 @@ Zen only gives extensions the tabs of the active workspace, so typical tab unloa
 
 <b>What stays awake</b>
 <ul>
-<li>Essentials (optional)</li>
-<li>pinned workspace tabs and folders, if you want</li>
+<li>Essentials and other pinned tabs (optional)</li>
+<li>tabs in folders, if you want</li>
 <li>tabs playing audio, and tabs using the camera, microphone or screen sharing</li>
 <li>sites on your exception list, e.g. <code>github.com</code> or <code>https://example.com/app</code></li>
 <li>tabs you keep awake from the tab context menu</li>
@@ -61,8 +61,8 @@ Zen gibt Erweiterungen nur die Tabs des aktiven Workspace heraus, deshalb erreic
 
 <b>Was wach bleibt</b>
 <ul>
-<li>Essentials (abschaltbar)</li>
-<li>angepinnte Workspace-Tabs und Ordner, wenn du willst</li>
+<li>Essentials und andere angepinnte Tabs (abschaltbar)</li>
+<li>Tabs in Ordnern, wenn du willst</li>
 <li>Tabs mit Ton sowie Tabs mit Kamera-, Mikrofon- oder Bildschirmfreigabe</li>
 <li>Websites auf deiner Ausnahmeliste, z. B. <code>github.com</code> oder <code>https://example.com/app</code></li>
 <li>Tabs, die du per Kontextmenü wach hältst</li>
@@ -75,6 +75,17 @@ Funktioniert auch in normalem Firefox; dort zählen angepinnte Tabs als Essentia
 
 Quellcode, Details und Grenzen: https://github.com/langfeld/zen-tab-sleep
 ```
+
+## Icon and screenshots
+
+- **Icon:** `store/icons/icon-128.png` (AMO creates the smaller sizes itself)
+- **Screenshot:** `store/screenshots/screenshot-1.png` (1280×800). The popup
+  shows sample values.
+  - Caption (English): Sleeping tabs show faded icons in Zen's sidebar. The
+    popup shows the current tab's status, the settings and your exceptions.
+  - Caption (Deutsch): Schlafende Tabs erkennst du in Zens Seitenleiste an
+    blassen Symbolen. Das Popup zeigt den Status des aktuellen Tabs, die
+    Einstellungen und deine Ausnahmen.
 
 ## Notes for reviewers
 
