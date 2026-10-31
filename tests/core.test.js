@@ -14,6 +14,7 @@ function makeCtx(overrides = {}) {
     rules: core.parseExclusions(settings.exclusions).rules,
     now: NOW,
     registry: overrides.registry || {},
+    isFolder: overrides.isFolder || (() => false),
     activeSplitViewIds: overrides.activeSplitViewIds || new Set(),
   };
 }
@@ -135,63 +136,40 @@ test("evaluateTab: audio only protects when enabled", () => {
   assert.equal(core.evaluateTab(makeTab({ audible: true }), ctx).reason, "due");
 });
 
-test("evaluateTab: Essentials and pinned workspace tabs", () => {
-  const registry = { 2: { workspacePin: true } };
-  const unknownPin = makeTab({ id: 1, pinned: true });
-  const workspacePin = makeTab({ id: 2, pinned: true });
+test("evaluateTab: pinned tabs outside folders could be Essentials", () => {
+  const isFolder = groupId => groupId === 10;
+  const pinned = makeTab({ id: 1, pinned: true });
+  const folderTab = makeTab({ id: 2, pinned: true, groupId: 10 });
+  const splitTab = makeTab({ id: 3, pinned: true, groupId: 20 });
   const reason = (tab, settings) =>
-    core.evaluateTab(tab, makeCtx({ settings, registry })).reason;
+    core.evaluateTab(tab, makeCtx({ settings, isFolder })).reason;
 
-  // Default: Essentials are protected, workspace pins sleep.
-  assert.equal(reason(unknownPin, {}), "essential");
-  assert.equal(reason(workspacePin, {}), "due");
-  // Protect workspace pins as well.
-  assert.equal(reason(workspacePin, { protectWorkspacePins: true }), "workspacePin");
+  // Default: Essentials (any pinned tab outside a folder) stay awake, folder
+  // tabs sleep.
+  assert.equal(reason(pinned, {}), "essential");
+  assert.equal(reason(splitTab, {}), "essential");
+  assert.equal(reason(folderTab, {}), "due");
+  // Protect folder tabs as well.
+  assert.equal(reason(folderTab, { protectWorkspacePins: true }), "workspacePin");
   // Protect nothing.
   const none = { protectEssentials: false, protectWorkspacePins: false };
-  assert.equal(reason(unknownPin, none), "due");
-  assert.equal(reason(workspacePin, none), "due");
-  // Only workspace pins protected: unclear ones stay awake to be safe.
+  assert.equal(reason(pinned, none), "due");
+  assert.equal(reason(folderTab, none), "due");
+  // Only workspace tabs protected: unclear ones stay awake to be safe.
   const onlyPins = { protectEssentials: false, protectWorkspacePins: true };
-  assert.equal(reason(unknownPin, onlyPins), "essential");
+  assert.equal(reason(pinned, onlyPins), "essential");
 });
 
-test("classifyPinnedTabs: folder tabs are workspace tabs right away", () => {
-  const registry = {};
-  const isFolder = groupId => groupId === 10;
-  const tabs = [
-    makeTab({ id: 1, pinned: true, groupId: 10 }), // visible, in a folder
-    makeTab({ id: 2, pinned: true }), // visible, no folder: unclear
-    makeTab({ id: 3, pinned: true, groupId: 20 }), // split view
-    makeTab({ id: 4 }), // not pinned
-  ];
-  core.classifyPinnedTabs(tabs, new Set([1, 2, 3, 4]), registry, isFolder);
-  assert.equal(registry[1].workspacePin, true);
-  assert.equal(registry[2].workspacePin, undefined);
-  assert.equal(registry[3].workspacePin, undefined);
-  assert.equal(registry[4].workspacePin, undefined);
-
-  // With default settings the folder tab sleeps, the unclear one stays awake.
-  const ctx = makeCtx({ registry });
-  assert.equal(core.evaluateTab(tabs[0], ctx).reason, "due");
-  assert.equal(core.evaluateTab(tabs[1], ctx).reason, "essential");
-});
-
-test("classifyPinnedTabs: workspace tab after two checks without seeing it", () => {
-  const registry = {};
-  const tab = makeTab({ id: 5, pinned: true });
-  const noFolder = () => false;
-  core.classifyPinnedTabs([tab], new Set(), registry, noFolder);
-  assert.equal(registry[5].workspacePin, undefined, "missing once is not enough");
-  core.classifyPinnedTabs([tab], new Set([5]), registry, noFolder);
-  core.classifyPinnedTabs([tab], new Set(), registry, noFolder);
-  assert.equal(registry[5].workspacePin, undefined, "counting restarts when visible");
-  core.classifyPinnedTabs([tab], new Set(), registry, noFolder);
-  assert.equal(registry[5].workspacePin, true);
-  core.classifyPinnedTabs([tab], new Set([5]), registry, noFolder);
-  assert.equal(registry[5].workspacePin, true, "stays a workspace tab when visible again");
-  core.classifyPinnedTabs([{ ...tab, pinned: false }], new Set([5]), registry, noFolder);
-  assert.equal(registry[5].workspacePin, undefined, "unpinning resets it");
+test("evaluateTab: Essentials Zen hides from extensions stay awake", () => {
+  // Zen hides the Essentials of other containers like tabs of other
+  // workspaces; the extension then only reaches them by their ID. Whether a
+  // tab was ever seen must not matter.
+  const hiddenEssential = makeTab({ id: 4, pinned: true, lastAccessed: NOW - 600 * MINUTE });
+  const ctx = makeCtx({ registry: { 4: {} } });
+  assert.equal(core.evaluateTab(hiddenEssential, ctx).reason, "essential");
+  // A former folder tab that became an Essential is judged by where it is now.
+  const movedOut = makeTab({ id: 5, pinned: true, groupId: -1 });
+  assert.equal(core.evaluateTab(movedOut, makeCtx({ isFolder: () => true })).reason, "essential");
 });
 
 test("evaluateTab: a Firefox split view next to the active tab stays awake", () => {

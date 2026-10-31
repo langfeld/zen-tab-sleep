@@ -20,8 +20,9 @@ Tab abgedeckt, der Speicher belegt.
 
 ## Was wach bleibt
 
-- Essentials (abschaltbar)
-- angepinnte Workspace-Tabs und Ordner, wenn du es einschaltest
+- Essentials und alle anderen angepinnten Tabs außerhalb von Ordnern
+  (abschaltbar)
+- Tabs in Ordnern, wenn du es einschaltest
 - Tabs mit Ton (abschaltbar) und Tabs mit Kamera-, Mikrofon- oder
   Bildschirmfreigabe (immer)
 - Tabs auf deiner Ausnahmeliste
@@ -55,15 +56,14 @@ seine Domain auf die Liste oder wieder herunter.
 - Jede Minute und bei jedem Tab-Wechsel sucht die Erweiterung nach Tabs, die
   länger als die eingestellte Zeit nicht benutzt wurden, und entlädt sie mit
   `tabs.discard()`.
-- Essentials erkennt sie daran, dass sie in jedem Workspace sichtbar sind.
-  Tabs in Ordnern sind nie Essentials (Zen nimmt einen Tab aus den
-  Essentials, sobald er in einen Ordner kommt) und gelten sofort als
-  Workspace-Tabs. Jeder andere angepinnte Tab gilt erst als Workspace-Tab,
-  wenn er bei zwei Prüfungen hintereinander gefehlt hat, du seinen Workspace
-  also etwa zwei Minuten verlassen hast. Bis dahin bleibt er wach.
-- Mit container-spezifischen Essentials sehen Essentials anderer Container wie
-  Workspace-Tabs aus. Schalte dann *Angepinnte Workspace-Tabs und Ordner wach
-  halten* ein oder setze sie auf die Ausnahmeliste.
+- Erweiterungen können Essentials nicht von anderen angepinnten Tabs
+  unterscheiden. Zen führt außerdem je Container eigene Essentials und
+  verbirgt die anderer Container vor Erweiterungen, genau wie Tabs anderer
+  Workspaces. Deshalb gilt jeder angepinnte Tab außerhalb eines Ordners als
+  mögliches Essential und bleibt wach. Tabs in Ordnern sind nie Essentials,
+  weil Zen einen Tab aus den Essentials nimmt, sobald er in einen Ordner
+  kommt. Sie schlafen wie jeder andere Tab ein. Angepinnte Tabs, die schlafen
+  dürfen, gehören also in einen Ordner.
 - Eine geteilte Ansicht schläft nur als Ganzes, weil Zen die ganze Ansicht
   entlädt, sobald einer ihrer Tabs entladen wird.
 - In privaten Fenstern arbeitet die Erweiterung nur, wenn du das in

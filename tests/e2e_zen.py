@@ -20,7 +20,8 @@ from harness import (ADDON_ID, ADDON_UUID, Marionette, build_test_xpi, check,
 ZEN = sys.argv[1] if len(sys.argv) > 1 else "/tmp/zen-appimage/squashfs-root/zen"
 PORT = 28290
 PAGES = ["a1", "a2", "ap", "e1", "s1", "s2", "t1", "t2", "b1", "bs1", "bs2", "bf1", "bf2",
-         "bc1", "bp1", "f1", "f2", "g1", "g2", "x1", "x2", "y1", "k1", "k2", "r1"]
+         "bc1", "bp1", "cf1", "cf2", "c1", "f1", "f2", "g1", "g2", "x1", "x2", "y1", "k1", "k2",
+         "r1"]
 
 
 def main():
@@ -119,7 +120,7 @@ def main():
         names = ["A1", "A2", "AP", "AS1", "AS2", "AT1", "AT2", "AF1", "AF2", "AG1", "AG2",
                  "E1", "B1"]
         expected = {n: "asleep" for n in names}
-        expected.update(E1="awake", B1="awake", AT1="awake", AT2="awake", AG2="awake")
+        expected.update(E1="awake", B1="awake", AP="awake", AT1="awake", AT2="awake", AG2="awake")
         states = wait_for_states(m, expected)
         check("Split view with one fresh tab stays fully awake (AT1, AT2)",
               states["AT1"] == states["AT2"] == "awake", f'{states["AT1"]}/{states["AT2"]}')
@@ -127,7 +128,8 @@ def main():
               states["AG1"] == "asleep" and states["AG2"] == "awake",
               f'{states["AG1"]}/{states["AG2"]}')
         check("Tabs in workspace A sleep (A1, A2)", states["A1"] == states["A2"] == "asleep", states)
-        check("Pinned workspace tab sleeps (AP)", states["AP"] == "asleep", states["AP"])
+        check("Pinned tab outside a folder stays awake, it could be an Essential (AP)",
+              states["AP"] == "awake", states["AP"])
         check("Background split view sleeps as a whole", states["AS1"] == states["AS2"] == "asleep",
               f'{states["AS1"]}/{states["AS2"]}')
         check("Folder tabs sleep", states["AF1"] == states["AF2"] == "asleep",
@@ -173,11 +175,36 @@ def main():
               states["BF1"] == states["BF2"] == "asleep", states)
         check("Collapsed folder in the active workspace sleeps (BC1)",
               states["BC1"] == "asleep", states["BC1"])
-        check("Pinned tab outside a folder stays awake for now (BP1)",
+        check("Pinned tab outside a folder stays awake (BP1)",
               states["BP1"] == "awake", states["BP1"])
         check("Essential stays awake (E1)", states["E1"] == "awake", states["E1"])
 
-        print("\n5. Popup view and options page: exception 127.0.0.1")
+        print("\n5. Essentials of another container (Zen separates Essentials per container)")
+        hidden = m.js("""
+            const host = arguments[0];
+            gBrowser.selectedTab = byName("B1");
+            const cf1 = await openTab("CF1", host + "/cf1.html");
+            const cf2 = await openTab("CF2", host + "/cf2.html");
+            gZenFolders.createFolder([cf1, cf2], { label: "E2E folder C" });
+            await sleep(7000);                          // one check sees CF1 as a folder tab
+            gZenPinnedTabManager.addToEssentials(cf1);  // the folder tab becomes an Essential
+            const c = await gZenWorkspaces.createAndSaveWorkspace("E2E C", undefined, false, 2);
+            await waitFor(() => gZenWorkspaces.activeWorkspace === c.uuid, "workspace C");
+            await openTab("C1", host + "/c1.html", { select: true });
+            age(["E1", "CF1"]);
+            return { E1: gBrowser.tabs.includes(byName("E1")),
+                     CF1: gBrowser.tabs.includes(byName("CF1")),
+                     separate: Services.prefs.getBoolPref("zen.workspaces.separate-essentials", false) };
+        """, host)
+        check("Premise: Zen hides default-container Essentials in a space with another container",
+              hidden["separate"] and not hidden["E1"] and not hidden["CF1"], hidden)
+        time.sleep(30)  # about five checks
+        states = m.js('return describe(["E1", "CF1"]);')
+        check("Essential hidden by its container stays awake (E1)", states["E1"] == "awake", states["E1"])
+        check("Folder tab moved to the Essentials stays awake (CF1)", states["CF1"] == "awake", states["CF1"])
+        m.js('await space("E2E B"); gBrowser.selectedTab = byName("B1");')
+
+        print("\n6. Popup view and options page: exception 127.0.0.1")
         # Popup in a tab: "this tab" is then the popup page itself.
         popup_url = f"moz-extension://{ADDON_UUID}/popup.html"
         m.js("await openTab('POP', arguments[0], { select: true });", popup_url)
@@ -220,7 +247,7 @@ def main():
         check("Tab on the exception list stays awake (X1)", states["X1"] == "awake", states["X1"])
         check("Other tab sleeps (X2)", states["X2"] == "asleep", states["X2"])
 
-        print("\n6. Turning it off on the options page")
+        print("\n7. Turning it off on the options page")
         m.js('gBrowser.selectedTab = byName("OPT");')
         m.context("content")
         m.send("WebDriver:ElementClick", {"id": m.find("#enabled")})
@@ -243,7 +270,7 @@ def main():
         state = wait_for_states(m, {"Y1": "asleep"}, timeout=20)["Y1"]
         check("Turned on again: Y1 sleeps", state == "asleep", state)
 
-        print("\n7. Tab context menu")
+        print("\n8. Tab context menu")
         menu = m.js("""
             const [host, ip] = arguments;
             await openTab("K1", host + "/k1.html");
@@ -304,7 +331,7 @@ def main():
         if not installed_permanently:
             print("\nRestart test skipped (only installed temporarily).")
         else:
-            print("\n8. Restart: does the extension keep working without any action?")
+            print("\n9. Restart: does the extension keep working without any action?")
             m.js('Services.prefs.setIntPref("browser.startup.page", 3);')
             m.send("Marionette:Quit", {"flags": ["eRestart"]})
             m.close()

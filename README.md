@@ -19,8 +19,8 @@ until you open them anyway, so every tab that uses memory is covered.
 
 ## What stays awake
 
-- Essentials (can be turned off)
-- pinned workspace tabs and folders, if you turn it on
+- Essentials and every other pinned tab outside a folder (can be turned off)
+- tabs in folders, if you turn it on
 - tabs playing audio (can be turned off) and tabs using the camera,
   microphone or screen sharing (always)
 - tabs on your exception list
@@ -53,15 +53,13 @@ remove its domain.
 - Every minute, and whenever you switch tabs, the extension looks for tabs
   that haven't been used for longer than the set time and unloads them with
   `tabs.discard()`.
-- Essentials are recognized by being visible in every workspace. Tabs in
-  folders are never Essentials (Zen removes a tab from the Essentials when it
-  moves into a folder), so they count as workspace tabs right away. Any other
-  pinned tab only counts as a workspace tab once it was missing in two checks
-  in a row, that is after you left its workspace for about two minutes. Until
-  then it stays awake.
-- With container-specific Essentials, the Essentials of other containers look
-  like workspace tabs. Turn on *Keep pinned workspace tabs and folders awake*
-  or add them to the exceptions.
+- Extensions can't tell Essentials apart from other pinned tabs. Zen also
+  keeps separate Essentials per container and hides those of other containers
+  from extensions, just like tabs in other workspaces. So every pinned tab
+  outside a folder counts as a possible Essential and stays awake. Tabs in
+  folders are never Essentials, because Zen removes a tab from the Essentials
+  when it moves into a folder, so they go to sleep like any other tab. Pinned
+  tabs that may sleep belong in a folder.
 - A split view only sleeps as a whole, because Zen unloads the whole view as
   soon as one of its tabs is unloaded.
 - In private windows, the extension only works if you allow it in

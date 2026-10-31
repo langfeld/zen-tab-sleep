@@ -182,47 +182,6 @@ function lineHost(line) {
   return rule?.type === "host" ? rule.host : null;
 }
 
-// --- Classifying pinned tabs -------------------------------------------------
-
-// How many checks in a row a pinned tab must be missing before it counts as a
-// workspace tab. Essentials are visible in every workspace; two checks bridge
-// short intermediate states while switching workspaces.
-const ABSENT_CHECKS_FOR_WORKSPACE_PIN = 2;
-
-/**
- * Remembers for each pinned tab whether it is certainly a workspace tab. Any
- * other pinned tab could be an Essential.
- *
- * Tabs in folders are never Essentials: Zen removes a tab from the Essentials
- * as soon as it is moved into a folder, and pins every folder tab.
- *
- * @param {object[]} tabs
- * @param {Set<number>} visibleIds IDs from tabs.query(): the active workspace
- *   and the Essentials of every window
- * @param {object} registry Records per tab ID, updated in place
- * @param {(groupId: number) => boolean} isFolder
- */
-function classifyPinnedTabs(tabs, visibleIds, registry, isFolder) {
-  for (const tab of tabs) {
-    const record = (registry[tab.id] ??= {});
-    const groupId = tab.groupId ?? -1;
-    if (!tab.pinned) {
-      delete record.absentChecks;
-      delete record.workspacePin;
-    } else if (groupId !== -1 && isFolder(groupId)) {
-      delete record.absentChecks;
-      record.workspacePin = true;
-    } else if (visibleIds.has(tab.id)) {
-      delete record.absentChecks;
-    } else {
-      record.absentChecks = (record.absentChecks || 0) + 1;
-      if (record.absentChecks >= ABSENT_CHECKS_FOR_WORKSPACE_PIN) {
-        record.workspacePin = true;
-      }
-    }
-  }
-}
-
 // --- Evaluating a tab --------------------------------------------------------
 
 function isSleepableUrl(url) {
@@ -239,10 +198,28 @@ function hasSplitView(tab) {
 }
 
 /**
+ * Whether a pinned tab is certainly a workspace tab and not an Essential.
+ *
+ * Only tabs in folders are: Zen removes a tab from the Essentials as soon as
+ * it is moved into a folder, and pins every folder tab. Whether a tab is
+ * visible tells nothing, because Zen keeps separate Essentials per container
+ * and hides those of other containers from extensions, just like tabs of
+ * other workspaces.
+ *
+ * @param {object} tab
+ * @param {(groupId: number) => boolean} isFolder
+ */
+function isFolderTab(tab, isFolder) {
+  const groupId = tab.groupId ?? -1;
+  return groupId !== -1 && isFolder(groupId);
+}
+
+/**
  * Evaluates a single tab, ignoring groups.
  *
  * @param {object} tab Tab from the tabs API
- * @param {object} ctx { settings, rules, now, registry, activeSplitViewIds }
+ * @param {object} ctx { settings, rules, now, registry, isFolder,
+ *   activeSplitViewIds }
  * @returns {{reason: string, sleepsAt?: number}} "due" means put it to sleep
  *   now, "waiting" means not inactive for long enough yet; anything else means
  *   protected or not possible.
@@ -269,12 +246,12 @@ function evaluateTab(tab, ctx) {
     return { reason: "excluded" };
   }
   if (tab.pinned) {
-    if (record.workspacePin) {
+    if (isFolderTab(tab, ctx.isFolder)) {
       if (settings.protectWorkspacePins) {
         return { reason: "workspacePin" };
       }
     } else if (settings.protectEssentials || settings.protectWorkspacePins) {
-      // As long as it might be an Essential, it stays awake.
+      // It might be an Essential, so it stays awake.
       return { reason: "essential" };
     }
   }
@@ -341,7 +318,6 @@ if (typeof module !== "undefined") {
     siteHost,
     hasHostLine,
     toggleHostLine,
-    classifyPinnedTabs,
     evaluateTab,
     selectTabsToSleep,
   };

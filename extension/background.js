@@ -1,8 +1,7 @@
 "use strict";
 
-/* global loadSettings, saveSettings, parseExclusions, classifyPinnedTabs,
-   evaluateTab, selectTabsToSleep, siteHost, normalizeHost, hasHostLine,
-   toggleHostLine */
+/* global loadSettings, saveSettings, parseExclusions, evaluateTab,
+   selectTabsToSleep, siteHost, normalizeHost, hasHostLine, toggleHostLine */
 
 const ALARM_NAME = "tab-sleep-check";
 const CHECK_PERIOD_MINUTES = 1;
@@ -108,16 +107,6 @@ browser.tabs.onRemoved.addListener(tabId =>
   })
 );
 
-// Moving a pinned tab (to the Essentials, for example) and pinning or
-// unpinning it invalidate how it was classified.
-browser.tabs.onMoved.addListener(tabId =>
-  serialized(() => resetPinState(tabId))
-);
-browser.tabs.onUpdated.addListener(
-  tabId => serialized(() => resetPinState(tabId)),
-  { properties: ["pinned"] }
-);
-
 async function rememberTabs(tabIds) {
   const state = await loadState();
   let changed = false;
@@ -132,20 +121,10 @@ async function rememberTabs(tabIds) {
   }
 }
 
-async function resetPinState(tabId) {
-  const state = await loadState();
-  const record = state.registry[tabId];
-  if (record && (record.absentChecks || record.workspacePin)) {
-    delete record.absentChecks;
-    delete record.workspacePin;
-    await saveState(state);
-  }
-}
-
 // --- Checking and putting tabs to sleep --------------------------------------
 
-// Every tab that currently exists and is known to the extension, plus the IDs
-// of the visible ones (active workspace and Essentials of every window).
+// Every tab that currently exists and is known to the extension: the visible
+// ones from tabs.query() and, by their ID, those Zen hides from extensions.
 async function collectTabs(state) {
   const visible = await browser.tabs.query({});
   const visibleIds = new Set();
@@ -168,33 +147,33 @@ async function collectTabs(state) {
       delete state.registry[hiddenIds[i]];
     }
   });
-  return { tabs, visibleIds };
+  return tabs;
 }
 
 // Zen creates a split view as a tab group without a title, while folders have
 // a name. In Zen, groups that can't be looked up count as split views, to be
 // safe.
-async function loadGroupTitles() {
+async function loadFolderCheck() {
   const titles = new Map();
-  if (!browser.tabGroups) {
-    return titles;
-  }
-  try {
-    for (const group of await browser.tabGroups.query({})) {
-      titles.set(group.id, group.title || "");
+  if (browser.tabGroups) {
+    try {
+      for (const group of await browser.tabGroups.query({})) {
+        titles.set(group.id, group.title || "");
+      }
+    } catch (error) {
+      console.warn("[Zen Tab Sleep] Can't read tab groups:", error);
     }
-  } catch (error) {
-    console.warn("[Zen Tab Sleep] Can't read tab groups:", error);
   }
-  return titles;
+  return groupId => !!titles.get(groupId);
 }
 
-function buildContext(settings, state, tabs) {
+function buildContext(settings, state, tabs, isFolder) {
   return {
     settings,
     rules: parseExclusions(settings.exclusions).rules,
     now: Date.now(),
     registry: state.registry,
+    isFolder,
     activeSplitViewIds: new Set(
       tabs
         .filter(tab => tab.active && tab.splitViewId > -1)
@@ -206,15 +185,13 @@ function buildContext(settings, state, tabs) {
 async function runCheck() {
   const settings = await loadSettings();
   const state = await loadState();
-  const { tabs, visibleIds } = await collectTabs(state);
-  const groupTitles = await loadGroupTitles();
-  const isFolder = groupId => !!groupTitles.get(groupId);
-  classifyPinnedTabs(tabs, visibleIds, state.registry, isFolder);
+  const tabs = await collectTabs(state);
+  const isFolder = await loadFolderCheck();
   state.stats.lastCheck = Date.now();
 
   let slept = 0;
   if (settings.enabled) {
-    const ctx = buildContext(settings, state, tabs);
+    const ctx = buildContext(settings, state, tabs, isFolder);
     const verdicts = new Map(tabs.map(tab => [tab.id, evaluateTab(tab, ctx)]));
     // Only Zen unloads a whole split view when one of its tabs is unloaded.
     const zen = await isZen;
@@ -249,16 +226,9 @@ async function getStatus(tabId) {
   const state = await loadState();
   const tab = await browser.tabs.get(tabId);
   const record = state.registry[tab.id] || {};
-  // Classify on a copy, so a tab just dragged into a folder shows correctly
-  // before the next check.
-  const groupTitles = await loadGroupTitles();
-  const registry = { [tab.id]: { ...record } };
-  classifyPinnedTabs([tab], new Set([tab.id]), registry, groupId =>
-    !!groupTitles.get(groupId)
-  );
   const verdict = evaluateTab(
     tab,
-    buildContext(settings, { ...state, registry }, [tab])
+    buildContext(settings, state, [tab], await loadFolderCheck())
   );
   const host = siteHost(tab.url);
   return {
